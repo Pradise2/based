@@ -1,0 +1,61 @@
+
+.mainContainerClasses {
+  background-color: #3498db; /* bg-blue-600 */
+  color: #ffffff; /* text-white */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 1rem; /* p-8 */
+}
+
+.textContainerClasses {
+  padding-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.titleClasses {
+  font-size: 3rem; /* text-5xl */
+  font-weight: bold;
+  margin-bottom: 1rem; /* mb-4 */
+}
+
+.descriptionClasses {
+  font-size: 1.5rem; /* text-lg */
+  max-width: 40rem; /* max-w-xl */
+}
+
+.imageClasses {
+  width: 12rem; /* w-48 */
+  height: 12rem; /* h-48 */
+  object-fit: contain;
+}
+/* Tablet and Smaller Desktop */
+@media (min-width: 701px) and (max-width: 1120px) {
+  .grid {
+    grid-template-columns: repeat(2, 50%);
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .vercelLogo {
+    filter: invert(1);
+  }
+
+  .logo {
+    filter: invert(1) drop-shadow(0 0 0.3rem #ffffff70);
+  }
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(360deg);
+  }
+  to {
+    transform: rotate(0deg);
+  }
+}
