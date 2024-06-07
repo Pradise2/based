@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ```
 npm install
 npm run dev
@@ -16,3 +17,6 @@ const app = new Frog({
     features: ['interactor', 'cast'],
   }),
 )
+=======
+# based
+>>>>>>> 69c7fe35856f3d02faba45a2a057bca2c8e750ec
