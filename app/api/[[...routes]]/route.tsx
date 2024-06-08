@@ -5,13 +5,18 @@ import { devtools } from 'frog/dev'
 import { handle } from 'frog/next'
 import { serveStatic } from 'frog/serve-static'
 import { neynar } from 'frog/middlewares'
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+const neynarApiKey = process.env.NEYNAR_API_KEY || '';
 
 export const app = new Frog({
   assetsPath: '/',
   basePath: '/api',
 }).use(
   neynar({
-    apiKey: 'NEYNAR_FROG_FM',
+    apiKey: neynarApiKey,
     features: ['interactor', 'cast'],
   }),
 );
@@ -29,18 +34,36 @@ app.frame('/start', (c) => {
 app.frame('/Join-Waitlist', (c) => {
   const interactor = c.var.interactor;
   const cast = c.var.cast;
-  console.log('cast:', JSON.stringify(cast, null, 2)); // Output the entire cast object
-  console.log('cast: ', c.var.cast)
+
   if (
     interactor &&
     interactor.viewerContext &&
-    interactor.viewerContext.following 
+    interactor.viewerContext.following
   ) {
+   
+    if (cast && cast.reactions) {
+      const { likes, recasts } = cast.reactions;
+      const interactorFid = interactor.fid;
+
+      if (likes.some(like => like.fid === interactorFid) || recasts.some(recast => recast.fid === interactorFid)) {
+        return c.res({
+          action: '/Done',
+          image: "http://localhost:3000/Youhavejoined.jpg",
+        });
+      }
+    }
+
     return c.res({
-      action: '/Done',
-      image: "http://localhost:3000/Youhavejoined.jpg",
+      action: '/Join-Waitlist',
+      image: "http://localhost:3000/Tryagain.jpg",
+      intents: [
+        <Button.Reset>Try-again</Button.Reset>,
+        <Button.Link href="https://warpcast.com/based-launch">Follow /basedlaunch</Button.Link>,
+        <Button.Link href="https://warpcast.com/~/channel/basedlaunch">Follow @based-launch</Button.Link>,
+      ],
     });
   } else {
+   
     return c.res({
       action: '/Join-Waitlist',
       image: "http://localhost:3000/Tryagain.jpg",
@@ -61,6 +84,7 @@ app.frame('/Done', (c) => {
     ],
   });
 });
+
 
 devtools(app, { serveStatic });
 
