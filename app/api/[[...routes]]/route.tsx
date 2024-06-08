@@ -4,57 +4,17 @@ import { Button, Frog, TextInput } from 'frog'
 import { devtools } from 'frog/dev'
 import { handle } from 'frog/next'
 import { serveStatic } from 'frog/serve-static'
-import { neynar } from 'frog/hubs'
-import dotenv from 'dotenv';
+import { neynar } from 'frog/middlewares'
 
-dotenv.config();
-
-const app = new Frog({
+export const app = new Frog({
   assetsPath: '/',
   basePath: '/api',
-  hub: neynar({ 
-    apikey: process.env.NEYNAR_API_KEY
-  })
-})
-
-
-const fid = 3; // Viewer fid to check
-const postUrl = process.env.POST_URL; // Replace with the actual post URL to check
-
-// Function to check if a user is following the author of the post using Neynar
-async function checkFollowingPostAuthor(fid: number, postUrl: string): Promise<boolean> {
-  const options = {
-    method: 'GET',
-    headers: { accept: 'application/json', api_key: process.env.NEYNAR_API_KEY }
-  };
-  try {
-    const response = await fetch(`https://api.neynar.com/v2/farcaster/cast?type=${postUrl}&viewer_fid=${fid}`, options);
-    const data = await response.json();
-    return data.cast.viewer_context.following;
-  } catch (error) {
-    console.error('Error checking following status:', error);
-    return false;
-  }
-}
-
-// Function to check if a user has liked and cast on a post using Neynar
-async function checkPostInteractions(fid: number, postUrl: string): Promise<boolean> {
-  const options = {
-    method: 'GET',
-    headers: { accept: 'application/json', api_key: process.env.NEYNAR_API_KEY }
-  };
-  try {
-    const response = await fetch(`https://api.neynar.com/v2/farcaster/cast?type=${postUrl}&viewer_fid=${fid}`, options);
-    const data = await response.json();
-    return data.cast.viewer_context.liked && data.cast.viewer_context.recasted;
-  } catch (error) {
-    console.error('Error checking post interactions:', error);
-    return false;
-  }
-}
-
-// Uncomment to use Edge Runtime
-// export const runtime = 'edge'
+}).use(
+  neynar({
+    apiKey: 'NEYNAR_FROG_FM',
+    features: ['interactor', 'cast'],
+  }),
+);
 
 app.frame('/start', (c) => {
   return c.res({
@@ -63,24 +23,29 @@ app.frame('/start', (c) => {
     intents: [
       <Button value="Join-waitlist">Join-waitlist</Button>,
     ],
-  })
-})
+  });
+});
 
-app.frame('/Join-Waitlist', async (c) => {
-  const isFollowing = await checkFollowingPostAuthor(fid, postUrl);
-  const hasLikedAndCast = await checkPostInteractions(fid, postUrl);
-
-  if (isFollowing && hasLikedAndCast) {
+app.frame('/Join-Waitlist', (c) => {
+  const interactor = c.var.interactor;
+  const cast = c.var.cast;
+  console.log('cast:', JSON.stringify(cast, null, 2)); // Output the entire cast object
+  console.log('cast: ', c.var.cast)
+  if (
+    interactor &&
+    interactor.viewerContext &&
+    interactor.viewerContext.following 
+  ) {
     return c.res({
       action: '/Done',
-      image: "http://localhost:3000/Youhavejoined.jpg", 
+      image: "http://localhost:3000/Youhavejoined.jpg",
     });
   } else {
     return c.res({
       action: '/Join-Waitlist',
       image: "http://localhost:3000/Tryagain.jpg",
       intents: [
-        <Button.Reset >Try-again</Button.Reset>,
+        <Button.Reset>Try-again</Button.Reset>,
         <Button.Link href="https://warpcast.com/based-launch">Follow /basedlaunch</Button.Link>,
         <Button.Link href="https://warpcast.com/~/channel/basedlaunch">Follow @based-launch</Button.Link>,
       ],
@@ -94,10 +59,10 @@ app.frame('/Done', (c) => {
     intents: [
       <Button value="Share">Share</Button>,
     ],
-  })
-})
+  });
+});
 
-devtools(app, { serveStatic })
+devtools(app, { serveStatic });
 
-export const GET = handle(app)
-export const POST = handle(app)
+export const GET = handle(app);
+export const POST = handle(app);
